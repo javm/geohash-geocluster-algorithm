@@ -4,15 +4,16 @@ require 'pr_geohash'
 require 'pry'
 
 module Clustering
-  @@default_precision = 6
+  DEFAULT_PRECISION = 6
+  DISTANCE = 50 # Distance in pixels
   class << self
     attr_accessor :markers, :bbox, :clusters, :center_latlng, :geohash
   end
 
   class GeoclusterHelper
     def self.distance_pixels(lat1, lng1, lat2, lng2, resolution)
-      distance = distance_haversine(lat1, lng1, lat2, lng2)
-      distance_pixels = distance / resolution * pixel_correction(lat1)
+      distance = self.distance_haversine(lat1, lng1, lat2, lng2)
+      distance_pixels = distance / resolution * self.pixel_correction(lat1)
     end
 
     def self.resolutions
@@ -43,12 +44,12 @@ module Clustering
     # Rmeters is earth's radius in meters
     Rmeters = Rkm * 1000
 
-    def pixel_correction(lat)
-      1 + (335.0 / 223.271875276 - 1) * (Math.abs(lat) / 47.9899)
+    def self.pixel_correction(lat)
+      1 + (335.0 / 223.271875276 - 1) * ((lat).abs / 47.9899)
     end
 
     #Based on http://www.codecodex.com/wiki/Calculate_Distance_Between_Two_Points_on_a_Globe#Ruby
-    def distance_haversine(lat1, lng1, lat2, lng2)
+    def self.distance_haversine(lat1, lng1, lat2, lng2)
       lat1_rad = lat1 * RAD_PER_DEG
       lng1_rad = lng1 * RAD_PER_DEG
       lat2_rad = lat2 * RAD_PER_DEG
@@ -142,9 +143,19 @@ module Clustering
       @center_latlng = self.center_of(cluster)
     end
 
+    #TODO: Check where it comes the resolution
+    def should_cluster(cluster)
+      lng1 = self.x
+      lat1 = self.y
+      lng2 = cluster.x
+      lat2 = cluster.y
+      distance = GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2)
+      (distance < DISTANCE)
+    end
+
   end
 
-  def self.init(markers, padding=0.001, precision=@@default_precision)
+  def self.init(markers, padding=0.001, precision=DEFAULT_PRECISION)
     mks = JSON.parse(markers)
     mks = mks['markers']
     @clusters = Hash.new
@@ -169,8 +180,8 @@ module Clustering
       if(@clusters[hash_key])
         #We create a new cluster using lat,lng coordinates and the marker values
         simple_cluster = Cluster.new([val["lat"], val["lng"]], [val])
-      #we merged with the existing cluster
-      @clusters[hash_key].add_cluster(simple_cluster)
+        #we merged with the existing cluster
+        @clusters[hash_key].add_cluster(simple_cluster)
       else
         @clusters[hash_key] = Cluster.new([val["lat"], val["lng"]], [val])
       end
@@ -185,12 +196,21 @@ module Clustering
   def self.cluster_by_neighbor_check
     sorted = @clusters.sort
     sorted.each{ |val|
-      key = val[0]
-      val = val[1]
-      neighbors = GeoclusterHelper.get_top_right_neighbors(key)
+      current_key = val[0]
+      current = val[1]
+      #Checking if we haven't merge it
+      if (@clusters[current_key] == nil )
+        next
+      end
+      neighbors = GeoclusterHelper.get_top_right_neighbors(current_key)
       neighbors.each{ |n|
         if @clusters[n] != nil
-          puts "#{@clusters[n]} key #{n} is a neighbor of #{key}"
+          neighbor = @clusters[n]
+          if (current.should_cluster(neighbor))
+            @clusters[current_key].add_cluster(neighbor)
+            puts "#{@clusters[n]} key #{n} is a neighbor of #{current_key}, #{current}"
+            puts "And should been merged..."
+          end
         end
       }
     }
