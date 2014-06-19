@@ -7,7 +7,7 @@ module Clustering
   DEFAULT_PRECISION = 6
   DISTANCE = 50 # Distance in pixels
   class << self
-    attr_accessor :markers, :bbox, :clusters, :center_latlng, :geohash
+    attr_accessor :markers, :bbox, :clusters, :center_latlng, :geohash, :size
   end
 
   class GeoclusterHelper
@@ -144,12 +144,12 @@ module Clustering
     end
 
     #TODO: Check where it comes the resolution
-    def should_cluster(cluster)
+    def should_cluster(cluster, resolution)
       lng1 = self.x
       lat1 = self.y
       lng2 = cluster.x
       lat2 = cluster.y
-      distance = GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2)
+      distance = GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2, resolution)
       (distance < DISTANCE)
     end
 
@@ -172,20 +172,23 @@ module Clustering
     puts "Size: #{@size}"
     #binding.pry
 
+    counter = 0
     #Initializing geohashes
     mks.each { |key, val|
       geohash = GeoHash.encode(val["lat"], val["lng"])
       val["geohash"] = geohash
       hash_key = geohash[0...precision]
       if(@clusters[hash_key])
+        #puts "Original size: #{@clusters[hash_key].size}"
         #We create a new cluster using lat,lng coordinates and the marker values
         simple_cluster = Cluster.new([val["lat"], val["lng"]], [val])
         #we merged with the existing cluster
         @clusters[hash_key].add_cluster(simple_cluster)
+        #puts @clusters[hash_key].size
       else
         @clusters[hash_key] = Cluster.new([val["lat"], val["lng"]], [val])
+        #puts @clusters[hash_key].size
       end
-    #binding.pry
     }
     p,s =  @bbox.middle_point
     @center_latlng = [p,s]
@@ -193,12 +196,16 @@ module Clustering
 
   #private
 
-  def self.cluster_by_neighbor_check
+  def self.cluster_by_neighbor_check(resolution)
+    #We sort the cluster by key (that means by geohash)
     sorted = @clusters.sort
+    #For each geohash...
     sorted.each{ |val|
+      #Current geohash
       current_key = val[0]
+      #Current cluster
       current = val[1]
-      #Checking if we haven't merge it
+      #Checking if we haven't merged it
       if (@clusters[current_key] == nil )
         next
       end
@@ -206,14 +213,24 @@ module Clustering
       neighbors.each{ |n|
         if @clusters[n] != nil
           neighbor = @clusters[n]
-          if (current.should_cluster(neighbor))
-            @clusters[current_key].add_cluster(neighbor)
+          if (current.should_cluster(neighbor, resolution))
             puts "#{@clusters[n]} key #{n} is a neighbor of #{current_key}, #{current}"
-            puts "And should been merged..."
+            puts "And should been merged... merging"
+            @clusters[current_key].add_cluster(neighbor)
+            @clusters[n] = nil
           end
         end
       }
     }
+    @clusters = @clusters.delete_if { |k, v| v.nil? }
+    #binding.pry
+  end
+
+  def self.geohash_clustering_algorithm(markers, zoom = 8, distance = DISTANCE)
+    #self.init(markers);
+    resolutions = GeoclusterHelper.resolutions()
+    resolution = resolutions[zoom]
+    self.cluster_by_neighbor_check(resolution)
   end
 
 end
