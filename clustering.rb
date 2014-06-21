@@ -153,6 +153,10 @@ module Clustering
       (distance < DISTANCE)
     end
 
+    def generate_geohash()
+      geohash = GeoHash.encode(@center_latlng[0], @center_latlng[1])
+    end
+
   end
 
   def self.init(markers, padding=0.001, precision=DEFAULT_PRECISION)
@@ -221,6 +225,10 @@ module Clustering
           end
         end
       }
+      #Here the key of the current key should be change according to the new center
+      geohash = @clusters[current_key].generate_geohash()
+      @clusters[geohash] = @clusters[current_key]
+      @clusters[current_key] = nil
     }
     @clusters = @clusters.delete_if { |k, v| v.nil? }
     #binding.pry
