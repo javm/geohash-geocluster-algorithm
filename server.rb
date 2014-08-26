@@ -26,21 +26,12 @@ get '/' do
   #binding.pry
 end
 
-get '/clusters' do
-  res = Hash.new;
-
-  for geohash, c1 in Clustering.clusters
-    neighbors = Clustering.get_geohash_neighbors(c1, Clustering.clusters)
-    for c2 in neighbors do
-      if shouldCluster(c1, c2, distance)
-        mergeClusters(Clustering.clusters, c1, c2)
-      end
-    end
-  end
-
+post '/clusters' do
+  res = Hash.new
+  zoom = params[:zoom].to_i
+  distance = params[:distance].to_f
+  Clustering.geohash_clustering_algorithm(@markers, zoom, distance)
   res["clusters"] = Clustering.clusters
   res["centerLatLng"] = Clustering.center_latlng
   res.to_json
 end
-
-

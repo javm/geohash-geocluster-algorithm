@@ -19,7 +19,8 @@ function initialize() {
   var mapOptions ={};
   var map = null;
 
-$.getJSON("http://localhost:4567/clusters",
+$.post("http://localhost:4567/clusters",
+   {zoom: 7, distance: 5},
    function(data) {
      var c = data["centerLatLng"];
      mapOptions = {
@@ -42,7 +43,7 @@ $.getJSON("http://localhost:4567/clusters",
              title: sz.toString()
         });
      });
-   });
+   }, "json");
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);

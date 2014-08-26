@@ -6,6 +6,7 @@ describe Clustering do
     @markers = File.read("markers.json")
     #puts @markers
     Clustering.init(@markers)
+    D = Clustering::DISTANCE
   end
 
   it "should get the clusters as a Hash" do
@@ -15,7 +16,7 @@ describe Clustering do
     total_markers = 0
     #binding.pry
     Clustering.clusters.each{ |key, cluster|
-      puts key
+      #puts key
       total_markers = total_markers + cluster.size
     }
     expect(num_of_markers).to eq(total_markers)
@@ -29,5 +30,25 @@ describe Clustering do
       total_markers = total_markers + cluster.size
     }
     expect(num_of_markers).to eq(total_markers)
+  end
+
+  it "checks the distances beetwen the clusters" do
+    clusters = Clustering.clusters.values
+    for i in 0...(clusters.length-1)
+      j = i + 1
+      lat1 = clusters[i].x
+      lng1 = clusters[i].y
+      lat2 = clusters[j].x
+      lng2 = clusters[j].y
+      #Default
+      zoom = 8
+      resolution = (Clustering::GeoclusterHelper.resolutions())[zoom]
+      puts resolution
+      d = Clustering::GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2, resolution)
+      #binding.pry
+      puts "Distance in pixels: #{d}"
+      expect(d).to be > 0
+    end
+    puts clusters.length
   end
 end

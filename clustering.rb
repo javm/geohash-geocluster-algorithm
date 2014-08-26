@@ -167,8 +167,11 @@ module Clustering
     lat_a = (mks.values.map { |m| m["lat"] }).sort
     lng_a = (mks.values.map { |m| m["lng"] }).sort
     #returns bounding box [x1,y1,x2,y2]
-    p1 = [lng_a.first - padding, lat_a.first - padding]
-    p2 = [lng_a.last + padding, lat_a.last + padding]
+    #p1 = [lng_a.first - padding, lat_a.first - padding]
+    #p2 = [lng_a.last + padding, lat_a.last + padding]
+    #x lat, y lng
+    p1 = [lat_a.first - padding, lng_a.first - padding]
+    p2 = [lat_a.last + padding, lng_a.last + padding] 
     @bbox = Rectangle.new(p1,p2)
 
     #Returns a Rectangle that represents the bounding box for all the coordinates
