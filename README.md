@@ -19,5 +19,4 @@ USAGE
 3. Open in your browser: 
 http://localhost:4567/clustering/index.html
 or execute:
-curl -X GET http://localhost:4567/clusters
-to receive the JSON response.
+curl -X POST http://localhost:4567/clusters -d zoom=7 -d distance=10

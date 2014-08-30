@@ -20,11 +20,11 @@ function initialize() {
   var map = null;
 
 $.post("http://localhost:4567/clusters",
-   {zoom: 7, distance: 5},
+   {zoom: 7, distance: 50},
    function(data) {
      var c = data["centerLatLng"];
      mapOptions = {
-       zoom: 7,
+       zoom: 8,
        center: new google.maps.LatLng(c[0], c[1])
        //center: myLatlng
      }

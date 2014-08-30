@@ -150,6 +150,7 @@ module Clustering
       lng2 = cluster.x
       lat2 = cluster.y
       distance = GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2, resolution)
+      puts "Distance", distance
       (distance < DISTANCE)
     end
 
