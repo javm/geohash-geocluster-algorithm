@@ -10,7 +10,54 @@ module Clustering
     attr_accessor :markers, :bbox, :clusters, :center_latlng, :geohash, :size
   end
 
+
+  class GeoHashHelper
+
+    #Gives the geohash neighbors using the GeoHash.adjacent function
+    def self.get_top_right_neighbors(geohash)
+      neighbors = Array.new(4)
+      top = GeoHash.adjacent(geohash, :top)
+      neighbors[0] = GeoHash.adjacent(top, :left)
+      neighbors[1] = top
+      neighbors[2] = GeoHash.adjacent(top, :right)
+      neighbors[3] = GeoHash.adjacent(geohash, :right)
+      neighbors
+    end
+
+    #Calculates the length of the GeoHash depending on the distance between clusters in pixels
+    def self.length_from_distance(distance, resolution)
+      cluster_distance_meters = distance * resolution
+      x = y = cluster_distance_meters
+      [width, height] = GeoclusterHelper.backward_mercator(x, y)
+      hash_len = GeohashHelper.lookup_hash_len_for_width_height(width, height)
+      hash_len + 1
+    end
+
+    #Return a geohash length that has width & height >= specified arguments.
+    #
+    # based on solr2155.lucene.spatial.geohash.GeoHashUtils
+    def self.lookup_hash_len_for_width_height(width, height)
+      hash_len_to_lat_height, hash_len_to_lon_width = GeohashHelper.get_hash_len_conversions
+    end
+
+   # based on solr2155.lucene.spatial.geohash.GeoHashUtils
+   # See the table at http://en.wikipedia.org/wiki/Geohash
+   def self.get_hash_len_conversions
+     hash_len_to_lat_height = [90*2]
+     hash_len_to_lon_width = [180*2]
+     even = false;
+     for i in 1..GEOHASH_PRECISION
+       hash_len_to_lat_height[i] = hash_len_to_lat_height[i-1] / ( even ? 8 : 4)
+       hash_len_to_lon_width[i] = hash_len_to_lon_width[i - 1] / ( even ? 4 : 8)
+       even = !even
+     end
+     [hash_len_to_lat_height, hash_len_to_lon_width]
+   end
+
+  end
+
   class GeoclusterHelper
+
     def self.distance_pixels(lat1, lng1, lat2, lng2, resolution)
       distance = self.distance_haversine(lat1, lng1, lat2, lng2)
       distance_pixels = distance / resolution * self.pixel_correction(lat1)
@@ -25,18 +72,9 @@ module Clustering
       return r
     end
 
-    #Gives the geohash neighbors using the GeoHash.adjacent function
-    def self.get_top_right_neighbors(geohash)
-      neighbors = Array.new(4)
-      top = GeoHash.adjacent(geohash, :top)
-      neighbors[0] = GeoHash.adjacent(top, :left)
-      neighbors[1] = top
-      neighbors[2] = GeoHash.adjacent(top, :right)
-      neighbors[3] = GeoHash.adjacent(geohash, :right)
-      neighbors
-    end
-
     private
+    A = 6378137
+    R2D = 180 / Math::PI
     # PI = 3.1415926535
     RAD_PER_DEG = 0.017453293  #  PI/180
     # Rkm is earth’s radius in kilometers (mean radius = 6,371km)
@@ -46,6 +84,10 @@ module Clustering
 
     def self.pixel_correction(lat)
       1 + (335.0 / 223.271875276 - 1) * ((lat).abs / 47.9899)
+    end
+
+    def self.backward_mercator(x,y)
+      [ x * R2D / A, ((Math::PI * 0.5) - 2.0 * Math.atan(Math.exp(-y / A))) * R2D]
     end
 
     #Based on http://www.codecodex.com/wiki/Calculate_Distance_Between_Two_Points_on_a_Globe#Ruby
@@ -160,6 +202,7 @@ module Clustering
 
   end
 
+  #precision: size of the geohash
   def self.init(markers, padding=0.001, precision=DEFAULT_PRECISION)
     mks = JSON.parse(markers)
     mks = mks['markers']
