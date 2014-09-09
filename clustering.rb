@@ -5,6 +5,7 @@ require 'pry'
 
 module Clustering
   DEFAULT_PRECISION = 6
+  GEOHASH_PRECISION = 12
   DISTANCE = 50 # Distance in pixels
   class << self
     attr_accessor :markers, :bbox, :clusters, :center_latlng, :geohash, :size
@@ -38,6 +39,15 @@ module Clustering
     # based on solr2155.lucene.spatial.geohash.GeoHashUtils
     def self.lookup_hash_len_for_width_height(width, height)
       hash_len_to_lat_height, hash_len_to_lon_width = GeohashHelper.get_hash_len_conversions
+      #Loop through hash length arrays from beginning till we find one.
+      for len in 1..GEOHASH_PRECISION
+        lat_height = hash_len_to_lat_height[len]
+         lon_width = hash_len_lot_lon_width[len]
+        if(lat_height < height || lon_widht < width)
+          return len - 1
+        end
+      end
+      return GEOHASH_PRECISION
     end
 
    # based on solr2155.lucene.spatial.geohash.GeoHashUtils
@@ -58,11 +68,6 @@ module Clustering
 
   class GeoclusterHelper
 
-    def self.distance_pixels(lat1, lng1, lat2, lng2, resolution)
-      distance = self.distance_haversine(lat1, lng1, lat2, lng2)
-      distance_pixels = distance / resolution * self.pixel_correction(lat1)
-    end
-
     def self.resolutions
       r = Array.new
       max_resolution = 156.412 * 1000;
@@ -70,6 +75,11 @@ module Clustering
         r[zoom] = max_resolution / (zoom * zoom)
       end
       return r
+    end
+
+    def self.distance_pixels(lat1, lng1, lat2, lng2, resolution)
+      distance = self.distance_haversine(lat1, lng1, lat2, lng2)
+      distance_pixels = distance / resolution * self.pixel_correction(lat1)
     end
 
     private
@@ -203,7 +213,11 @@ module Clustering
   end
 
   #precision: size of the geohash
-  def self.init(markers, padding=0.001, precision=DEFAULT_PRECISION)
+  def self.init(markers, zoom, distance, padding=0.001)
+    #precision should be determined by zoom and distance
+    resolutions = GeoclusterHelper.resolutions()
+    resolution = resolutions[zoom]
+    precision = GeohashHelper.length_from_distance(distance, resolution)
     mks = JSON.parse(markers)
     mks = mks['markers']
     @clusters = Hash.new
