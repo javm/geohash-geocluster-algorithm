@@ -20,7 +20,7 @@ function initialize() {
   var map = null;
 
 $.post("http://localhost:4567/clusters",
-   {zoom: 7, distance: 50},
+   {zoom: 8, distance: 20},
    function(data) {
      var c = data["centerLatLng"];
      mapOptions = {

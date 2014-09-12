@@ -2,11 +2,17 @@ GEM
   remote: https://rubygems.org/
   specs:
     backports (3.6.0)
+    coderay (1.1.0)
     daemons (1.1.9)
     diff-lcs (1.2.5)
     eventmachine (1.0.3)
+    method_source (0.8.2)
     multi_json (1.9.0)
     pr_geohash (1.0.0)
+    pry (0.10.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
@@ -31,11 +37,9 @@ GEM
       rack-test
       sinatra (~> 1.4.0)
       tilt (~> 1.3)
-    sinatra-jsonp (0.4.3)
-      multi_json (~> 1.8)
-      sinatra (~> 1.0)
     sinatra-reloader (1.0)
       sinatra-contrib
+    slop (3.6.0)
     thin (1.6.2)
       daemons (>= 1.0.9)
       eventmachine (>= 1.0.0)
@@ -47,9 +51,9 @@ PLATFORMS
 
 DEPENDENCIES
   pr_geohash
+  pry
   rspec
   sinatra
   sinatra-contrib
-  sinatra-jsonp
   sinatra-reloader
   thin

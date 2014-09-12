@@ -12,7 +12,7 @@ module Clustering
   end
 
 
-  class GeoHashHelper
+  class GeohashHelper
 
     #Gives the geohash neighbors using the GeoHash.adjacent function
     def self.get_top_right_neighbors(geohash)
@@ -29,7 +29,7 @@ module Clustering
     def self.length_from_distance(distance, resolution)
       cluster_distance_meters = distance * resolution
       x = y = cluster_distance_meters
-      [width, height] = GeoclusterHelper.backward_mercator(x, y)
+      width, height = GeoclusterHelper.backward_mercator(x, y)
       hash_len = GeohashHelper.lookup_hash_len_for_width_height(width, height)
       hash_len + 1
     end
@@ -42,8 +42,8 @@ module Clustering
       #Loop through hash length arrays from beginning till we find one.
       for len in 1..GEOHASH_PRECISION
         lat_height = hash_len_to_lat_height[len]
-         lon_width = hash_len_lot_lon_width[len]
-        if(lat_height < height || lon_widht < width)
+         lon_width = hash_len_to_lon_width[len]
+        if(lat_height < height || lon_width < width)
           return len - 1
         end
       end
@@ -274,7 +274,7 @@ module Clustering
       if (@clusters[current_key] == nil )
         next
       end
-      neighbors = GeoclusterHelper.get_top_right_neighbors(current_key)
+      neighbors = GeohashHelper.get_top_right_neighbors(current_key)
       neighbors.each{ |n|
         if @clusters[n] != nil
           neighbor = @clusters[n]
@@ -296,7 +296,7 @@ module Clustering
   end
 
   def self.geohash_clustering_algorithm(markers, zoom = 8, distance = DISTANCE)
-    #self.init(markers);
+    self.init(markers, zoom, distance);
     resolutions = GeoclusterHelper.resolutions()
     resolution = resolutions[zoom]
     self.cluster_by_neighbor_check(resolution)

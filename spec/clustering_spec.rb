@@ -5,7 +5,7 @@ describe Clustering do
   before :all do
     @markers = File.read("markers.json")
     #puts @markers
-    Clustering.init(@markers)
+    Clustering.init(@markers, 8, 20)
     D = Clustering::DISTANCE
   end
 

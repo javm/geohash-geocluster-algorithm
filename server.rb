@@ -18,7 +18,7 @@ before do
   content_type :json
   @markers = File.read("markers.json")
   #puts @markers
-  Clustering.init(@markers, zoom, 50)
+  #Clustering.init(@markers, zoom, 50)
 end
 
 get '/' do
