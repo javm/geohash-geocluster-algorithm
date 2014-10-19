@@ -28,4 +28,8 @@ http://localhost:4567/clustering/index.html
 or execute:
 curl -X POST http://localhost:4567/clusters -d zoom=7 -d distance=10
 
+ABOUT
+=====
 
+Clustering.init(markers)
+Clustering.algorithm(bbox)

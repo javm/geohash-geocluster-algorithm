@@ -18,6 +18,7 @@ before do
   content_type :json
   @markers = File.read("markers.json")
   #puts @markers
+  Clustering.load(markers)
   #Clustering.init(@markers, zoom, 50)
 end
 
@@ -27,10 +28,18 @@ get '/' do
 end
 
 post '/clusters' do
-  res = Hash.new
+  if params[:bbox]
+    bbox = params[:bbox].split(",");
+    markers = Clustering.get_included(bbox);
+  end
+  markers = markers || Clustering.markers
+
   zoom = params[:zoom].to_i
   distance = params[:distance].to_f
-  Clustering.geohash_clustering_algorithm(@markers, zoom, distance)
+  Clustering.init(markers, zoom, distance)
+
+  res = Hash.new
+  Clustering.geohash_clustering_algorithm(markers, zoom, distance)
   res["clusters"] = Clustering.clusters
   res["centerLatLng"] = Clustering.center_latlng
   res.to_json
