@@ -18,7 +18,7 @@ before do
   content_type :json
   @markers = File.read("markers.json")
   #puts @markers
-  Clustering.load(markers)
+  Clustering.load(@markers)
   #Clustering.init(@markers, zoom, 50)
 end
 
@@ -29,7 +29,7 @@ end
 
 post '/clusters' do
   if params[:bbox]
-    bbox = params[:bbox].split(",");
+    bbox = params[:bbox];
     markers = Clustering.get_included(bbox);
   end
   markers = markers || Clustering.markers

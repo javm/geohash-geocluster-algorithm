@@ -14,36 +14,64 @@
 
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
+
+function putMarkers(map, markers, data){
+
+  //Cleaning and resetting markers
+  markers.forEach(function(marker){
+    marker.setMap(null);
+  });
+  markers = [];
+
+  var clusters = data["clusters"];
+  $.each(clusters, function(key, obj){
+    //alert(obj["center_latlng"]);
+    var lat = obj["center_latlng"][0];
+    var lng = obj["center_latlng"][1];
+    var sz = obj["size"];
+    var latlng = new google.maps.LatLng(lat, lng);
+    markers.push(new google.maps.Marker({
+      position: latlng,
+      map: map,
+      title: sz.toString()
+    }));
+  });
+}
+
 function initialize() {
   //var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
   var mapOptions ={};
   var map = null;
+  var markers = [];
 
-$.post("http://localhost:4567/clusters",
-   {zoom: 8, distance: 20},
-   function(data) {
-     var c = data["centerLatLng"];
-     mapOptions = {
-       zoom: 8,
-       center: new google.maps.LatLng(c[0], c[1])
-       //center: myLatlng
-     }
-     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-     var clusters = data["clusters"];
-     Object.keys(clusters).forEach(function(key){
-        var obj = clusters[key];
-        //alert(obj["center_latlng"]);
-        var lat = obj["center_latlng"][0];
-        var lng = obj["center_latlng"][1];
-        var sz = obj["size"];
-        var latlng = new google.maps.LatLng(lat, lng);
-        new google.maps.Marker({
-             position: latlng,
-             map: map,
-             title: sz.toString()
-        });
-     });
-   }, "json");
+  $.post("http://localhost:4567/clusters",
+    {zoom: 8, distance: 20},
+    function(data) {
+      var c = data["centerLatLng"];
+      mapOptions = {
+        zoom: 8,
+        center: new google.maps.LatLng(c[0], c[1])
+        //center: myLatlng
+      }
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+      google.maps.event.addListener(map, 'zoom_changed', function() {
+        var zoomLevel = map.getZoom();
+        var bounds = map.getBounds();
+        var p1 = bounds.getSouthWest();
+        var p2 = bounds.getNorthEast();
+        //alert(bounds.getSouthWest().lat());
+        $.post("http://localhost:4567/clusters",
+          {zoom: zoomLevel, distance: 20, bbox: [p1.lat(), p1.lng(), p2.lat(), p2.lng()]},
+          function(data){
+            putMarkers(map, markers, data);
+         }, "json");
+         //map.setCenter(myLatLng);
+         //infowindow.setContent('Zoom: ' + zoomLevel);
+       });
+      
+      putMarkers(map, markers, data);
+    }, "json");
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);

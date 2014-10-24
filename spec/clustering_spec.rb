@@ -5,7 +5,8 @@ describe Clustering do
   before :all do
     @markers = File.read("markers.json")
     #puts @markers
-    Clustering.init(@markers, 8, 20)
+    Clustering.load(@markers)
+    Clustering.init(Clustering.markers, 8, 20)
     D = Clustering::DISTANCE
   end
 
@@ -23,7 +24,7 @@ describe Clustering do
   end
 
   it "should give the neighbors of each cluster in Clustering.clusters" do
-    Clustering.geohash_clustering_algorithm(@markers)
+    Clustering.geohash_clustering_algorithm(Clustering.markers)
     num_of_markers = Clustering.size
     total_markers = 0
     Clustering.clusters.each{ |key, cluster|
@@ -42,13 +43,17 @@ describe Clustering do
       lng2 = clusters[j].y
       #Default
       zoom = 8
-      resolution = (Clustering::GeoclusterHelper.resolutions())[zoom]
+      resolution = (GeoclusterHelper.resolutions())[zoom]
       puts resolution
-      d = Clustering::GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2, resolution)
+      d = GeoclusterHelper.distance_pixels(lat1, lng1, lat2, lng2, resolution)
       #binding.pry
       puts "Distance in pixels: #{d}"
       expect(d).to be > 0
     end
     puts clusters.length
+  end
+
+  it "Should get the markers in a bbox" do
+    bbox = []
   end
 end
