@@ -15,7 +15,10 @@
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
 
-function putMarkers(map, markers, data){
+var map = null;
+var markers = [];
+
+function putMarkers(data){
 
   //Cleaning and resetting markers
   markers.forEach(function(marker){
@@ -41,8 +44,6 @@ function putMarkers(map, markers, data){
 function initialize() {
   //var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
   var mapOptions ={};
-  var map = null;
-  var markers = [];
 
   $.post("http://localhost:4567/clusters",
     {zoom: 8, distance: 20},
@@ -64,13 +65,12 @@ function initialize() {
         $.post("http://localhost:4567/clusters",
           {zoom: zoomLevel, distance: 20, bbox: [p1.lat(), p1.lng(), p2.lat(), p2.lng()]},
           function(data){
-            putMarkers(map, markers, data);
+            putMarkers(data);
          }, "json");
          //map.setCenter(myLatLng);
          //infowindow.setContent('Zoom: ' + zoomLevel);
        });
-      
-      putMarkers(map, markers, data);
+      putMarkers(data);
     }, "json");
 }
 
