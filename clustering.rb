@@ -74,7 +74,7 @@ module Clustering
   end
 
 
-  def self.initClusters(mks, precision, padding)
+  def self.initClusters(mks, precision, bbox, padding)
     #Getting the initial cluster configuration
     @clusters = Hash.new
     @size = mks.size
@@ -84,9 +84,14 @@ module Clustering
     #p1 = [lng_a.first - padding, lat_a.first - padding]
     #p2 = [lng_a.last + padding, lat_a.last + padding]
     #x lat, y lng
-    p1 = [lat_a.first - padding, lng_a.first - padding]
-    p2 = [lat_a.last + padding, lng_a.last + padding]
-    @bbox = Bbox.new(p1,p2)
+
+    if(bbox)
+      @bbox = bbox
+    else
+      p1 = [lat_a.first - padding, lng_a.first - padding]
+      p2 = [lat_a.last + padding, lng_a.last + padding]
+      @bbox = Bbox.new(p1,p2)
+    end
 
     #Returns a Bbox that represents the bounding box for all the coordinates
     puts "Initial bbox: #{@bbox.p1x},#{@bbox.p1y}, #{@bbox.p2x}, #{@bbox.p2y}"
@@ -123,19 +128,21 @@ module Clustering
   end
 
   #precision: size of the geohash
-  def self.init(markers, zoom, distance, padding=0.001)
+  def self.init(markers, zoom, distance, bbox=nil, padding=0.001)
     #precision should be determined by zoom and distance
     resolutions = GeoclusterHelper.resolutions()
     resolution = resolutions[zoom]
 
     precision = GeohashHelper.length_from_distance(distance, resolution)
-    self.initClusters(markers, precision, padding)
+    self.initClusters(markers, precision, bbox, padding)
   end
 
   #Cluster should be initialized
   def self.get_included(bbox)
-    p1 = [bbox[0].to_f, bbox[1].to_f]
-    p2 = [bbox[2].to_f, bbox[3].to_f]
+    #p1 = [bbox[0].to_f, bbox[1].to_f]
+    #p2 = [bbox[2].to_f, bbox[3].to_f]
+    p1 = bbox.p1
+    p2 = bbox.p2
     bounded_markers = Hash.new
     
     self.markers.each{ |key, val|
