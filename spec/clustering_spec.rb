@@ -54,6 +54,17 @@ describe Clustering do
   end
 
   it "Should get the markers in a bbox" do
-    bbox = []
+    p1 = [56.1845141080236, 7.788947644531277]
+    p2 = [57.15632264576221, 11.529792371093777]
+    bbox = Bbox.new(p1, p2)
+    included = Clustering.get_included(bbox)
+    markers = included.values
+    isIn = true
+    for i in 0...(markers.length-1)
+      lat, lng = markers[i]['lat'], markers[i]['lng']
+      puts "#{lat}, #{lng}"
+      isIn = ((p1[0] < lat) && (lat <= p2[0]) && (p1[1] < lng) && (lng <= p2[1])) && isIn
+    end
+    expect(isIn).to be true
   end
 end

@@ -34,7 +34,7 @@ post '/clusters' do
     p1 = [bbox[0].to_f, bbox[1].to_f]
     p2 = [bbox[2].to_f, bbox[3].to_f]
     @bbox = Bbox.new(p1,p2)
-    #binding.pry
+    puts @bbox.inspect
     markers = Clustering.get_included(@bbox);
   end
   markers = markers || Clustering.markers
