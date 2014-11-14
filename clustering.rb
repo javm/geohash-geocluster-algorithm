@@ -144,7 +144,7 @@ module Clustering
     p1 = bbox.p1
     p2 = bbox.p2
     bounded_markers = Hash.new
-    
+
     self.markers.each{ |key, val|
       lat, lng = val["lat"], val["lng"]
       if( (p1[0] < lat && lat <= p2[0]) && (p1[1] < lng && lng <= p2[1]) )
@@ -161,11 +161,15 @@ module Clustering
     #We sort the cluster by key (that means by geohash)
     sorted = @clusters.sort
     #For each geohash...
-    sorted.each{ |val|
+    sorted.each{ |key, val|
       #Current geohash
-      current_key = val[0]
+      #current_key = val[0]
+      current_key = key
+      #p key
       #Current cluster
-      current = val[1]
+      #current = val[1]
+      current = val
+      #p val
       #Checking if we haven't merged it
       if (@clusters[current_key] == nil )
         next
@@ -184,8 +188,10 @@ module Clustering
       }
       #Here the key of the current key should be change according to the new center
       geohash = @clusters[current_key].generate_geohash()
-      @clusters[geohash] = @clusters[current_key]
-      @clusters[current_key] = nil
+      if geohash != current_key
+        @clusters[geohash] = @clusters[current_key]
+        @clusters[current_key] = nil
+      end
     }
     @clusters = @clusters.delete_if { |k, v| v.nil? }
     #binding.pry
