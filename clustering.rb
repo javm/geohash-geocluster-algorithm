@@ -56,7 +56,9 @@ module Clustering
       @center_latlng = self.center_of(cluster)
     end
 
-    #TODO: Check where it comes the resolution
+    #resolution comes from GeoclusterHelper resolution calculation for each zoom
+    #from 1 to 30
+    #Use the haversine distance if it is lower than DISTANCE so the clusters should join
     def should_cluster(cluster, resolution)
       lng1 = self.x
       lat1 = self.y
