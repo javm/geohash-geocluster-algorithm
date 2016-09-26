@@ -60,6 +60,7 @@ describe Clustering do
       expect(out["lat"]).to be_equal(val["lat"])
       expect(out["lng"]).to be_equal(val["lng"])
     }
+
     Clustering.cluster_by_neighbor_check(resolution);
 
     Clustering.clusters.each{ |key, cluster|
@@ -67,7 +68,9 @@ describe Clustering do
       neighbors.each {|n_k|
         #Checking if n_k is a key in the clusters, if yes this shouldn't pass the criteria
         #for merging
+        #puts n_k
         if Clustering.clusters[n_k]
+          puts "Cluster found", Clustering.clusters[n_k]
           expect(cluster.should_cluster(Clusterung.clusters[n_k])).to be false
         end
       }
