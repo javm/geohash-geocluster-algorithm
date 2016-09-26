@@ -24,9 +24,9 @@ USAGE
 1. bundle install
 2. ruby server
 3. Open in your browser: 
-http://localhost:4567/clustering/index.html
+   http://localhost:4567/clustering/index.html
 or execute:
-curl -X POST http://localhost:4567/clusters -d zoom=7 -d distance=10
+   curl -X POST http://localhost:4567/clusters -d zoom=7 -d distance=10
 
 ABOUT
 =====
